@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音楽理論 早見盤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<style>
+html{color-scheme:light}
+body{margin:0}
+
+/* Layout: a watch-dial card on the left, controls stacked on the right; one column on phones.
+   Palette: dial face, ink, wheel blue (scale), triangle red (chord), cool neutrals. */
+:root{
+  --bg:#e8ecf4; --card:#f8fafd; --face:#f3f6fb; --fg:#101a33; --muted:#55617c; --line:#c3ccdc;
+  --blue:#2a64d6; --blue-soft:rgba(42,100,214,.14); --red:#d23b47; --red-soft:rgba(210,59,71,.16); --on-red:#fff;
+  --btn:#e3e9f4; --btn-hover:#d6dfef;
+  --f-display:'Shippori Mincho B1','Hiragino Mincho ProN','Yu Mincho',serif;
+  --f-body:'Zen Kaku Gothic New','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0d1424; --card:#151e36; --face:#101830; --fg:#e8edf8; --muted:#97a3c0; --line:#2c3a58;
+    --blue:#6ea3ff; --blue-soft:rgba(110,163,255,.18); --red:#ff7b86; --red-soft:rgba(255,123,134,.2); --on-red:#1a0b0e;
+    --btn:#1f2a48; --btn-hover:#2a3760; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0d1424; --card:#151e36; --face:#101830; --fg:#e8edf8; --muted:#97a3c0; --line:#2c3a58;
+  --blue:#6ea3ff; --blue-soft:rgba(110,163,255,.18); --red:#ff7b86; --red-soft:rgba(255,123,134,.2); --on-red:#1a0b0e;
+  --btn:#1f2a48; --btn-hover:#2a3760; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.65;padding-inline:16px;padding-block:24px 48px}
+.app{max-width:1060px;margin-inline:auto}
+header{margin-block-end:20px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,6vw,52px);letter-spacing:.12em;margin:0;line-height:1.1}
+.lede{margin:8px 0 0;color:var(--muted);max-width:60ch;text-wrap:pretty}
+h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+@media (min-width:880px){.grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start}.dialcard{position:sticky;top:16px}}
+.dialcard{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px}
+.panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+#dial{display:block;width:100%;max-width:520px;height:auto;margin-inline:auto;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+#dial:active{cursor:grabbing}
+.face{fill:var(--face);stroke:var(--line);stroke-width:2}
+.track{fill:none;stroke:var(--line);stroke-width:1;stroke-dasharray:2 5}
+.hour{font-family:var(--f-mono);font-size:10px;fill:var(--muted);text-anchor:middle;dominant-baseline:central}
+#wheel{transform-origin:200px 200px;transition:transform .45s cubic-bezier(.3,.8,.3,1)}
+#wheel.drag{transition:none}
+.outline{fill:none;stroke:var(--blue);stroke-width:1;stroke-dasharray:3 4;opacity:.55}
+.star{fill:var(--blue-soft);fill-rule:evenodd;stroke:var(--blue);stroke-width:1.6;stroke-linejoin:round}
+.tonic{fill:none;stroke:var(--blue);stroke-width:2;stroke-dasharray:4 3}
+.tri{fill:var(--red-soft);stroke:var(--red);stroke-width:3;stroke-linejoin:round}
+.tag{font-family:var(--f-mono);font-size:10px;font-weight:500;fill:var(--red);text-anchor:middle;dominant-baseline:central}
+.slot-c{fill:var(--face);stroke:var(--line);stroke-width:1.5}
+.slot text{font-weight:700;fill:var(--muted);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.slot.in{cursor:pointer}
+.slot.in .slot-c{fill:var(--card);stroke:var(--blue);stroke-width:2}
+.slot.in text{fill:var(--fg)}
+.slot.chord .slot-c{fill:var(--red);stroke:var(--red)}
+.slot.chord text{fill:var(--on-red)}
+.slot:focus-visible{outline:none}
+.slot:focus-visible .slot-c{stroke-width:4;stroke:var(--fg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:10px 0 0;font-size:13px;color:var(--muted);justify-content:center}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-inline-end:6px;vertical-align:-1px}
+.legend .b{background:var(--blue-soft);border:2px solid var(--blue)}
+.legend .r{background:var(--red)}
+.legend .k{border:2px dashed var(--blue)}
+.dialnote{margin:12px 0 0;text-align:center;font-size:13px;color:var(--muted)}
+button{font:inherit;color:var(--fg);cursor:pointer}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.btn{background:var(--btn);border:1px solid var(--line);border-radius:9px;padding:7px 12px;min-height:38px}
+.btn:hover{background:var(--btn-hover)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:var(--card);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seg button{background:var(--btn);border:0;padding:7px 14px;min-height:38px}
+.seg button+button{border-inline-start:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--blue);color:var(--card);font-weight:700}
+.keys{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-block-end:12px}
+.keys button{background:var(--btn);border:1px solid var(--line);border-radius:8px;padding:6px 0;min-height:40px;font-weight:700}
+.keys button[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--card)}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;margin:14px 0 0;font-size:14px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;font-family:var(--f-mono);font-size:13px;overflow-wrap:anywhere}
+.degs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.degs button{background:var(--btn);border:1px solid var(--line);border-radius:8px;padding:6px 0 7px;display:flex;flex-direction:column;align-items:center;line-height:1.25;min-width:0}
+.degs b{font-size:14px}
+.degs small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.degs button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:var(--on-red)}
+.degs button[aria-pressed="true"] small{color:var(--on-red)}
+.chordname{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin-block:14px 4px}
+.chordname strong{font-family:var(--f-display);font-size:34px;line-height:1.1;color:var(--red)}
+.chordname span{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.mood{display:inline-block;font-size:12px;font-weight:700;padding:1px 10px;border-radius:99px;border:1px solid var(--red);color:var(--red)}
+.explain{margin:6px 0 0;font-size:14px;color:var(--muted);text-wrap:pretty}
+.prog{display:flex;flex-wrap:wrap;gap:8px;margin-block:2px 12px;min-height:54px}
+.chip{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--btn)}
+.chip .pick{background:transparent;border:0;padding:4px 12px;display:flex;flex-direction:column;align-items:center;line-height:1.25;min-width:52px}
+.chip .pick b{font-size:15px}
+.chip .pick small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.chip .x{background:transparent;border:0;border-inline-start:1px solid var(--line);padding:0 8px;color:var(--muted)}
+.chip.now{border-color:var(--red);background:var(--red-soft)}
+.empty{color:var(--muted);font-size:14px;align-self:center}
+.bpm{display:flex;align-items:center;gap:10px;font-family:var(--f-mono);font-size:13px}
+.bpm input{width:140px;max-width:100%;accent-color:var(--blue)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-block-start:12px}
+.presets button{background:transparent;border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-size:13px}
+.presets button:hover{background:var(--btn)}
+footer{margin-block-start:22px;font-size:13px;color:var(--muted);max-width:70ch;text-wrap:pretty}
+footer a{color:var(--blue)}
+@media (prefers-reduced-motion:reduce){#wheel{transition:none}}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <header>
+    <h1>早見盤</h1>
+    <p class="lede">12音の時計の上で、青い盤（スケール）と赤い三角（コード）を回して音楽理論を確かめるツールです。盤をドラッグするとキーが変わり、音の丸をタップするとコードが鳴ります。</p>
+  </header>
+
+  <div class="grid">
+    <section class="dialcard" aria-label="早見盤">
+      <svg id="dial" viewBox="0 0 400 400" role="img" aria-label="12音の時計の上にスケールの星とコードの三角を重ねた早見盤">
+        <circle class="face" cx="200" cy="200" r="196"/>
+        <g id="hours"></g>
+        <circle class="track" cx="200" cy="200" r="140"/>
+        <g id="wheel"></g>
+        <g id="chordLayer"></g>
+        <g id="slots"></g>
+      </svg>
+      <div class="legend">
+        <span><i class="b"></i>スケールの7音</span>
+        <span><i class="k"></i>キー（主音）</span>
+        <span><i class="r"></i>コードの3音</span>
+      </div>
+      <p class="dialnote">時計の3時の位置がド（C）。時計の1時間が半音ひとつ分です。</p>
+    </section>
+
+    <div class="panel">
+      <section class="sec" aria-labelledby="h-key">
+        <h2 id="h-key">1. キーとスケール</h2>
+        <div class="keys" id="keys"></div>
+        <div class="row">
+          <div class="seg" role="group" aria-label="スケールの種類">
+            <button type="button" data-act="mode" data-v="major" aria-pressed="true">メジャー</button>
+            <button type="button" data-act="mode" data-v="minor" aria-pressed="false">マイナー</button>
+          </div>
+          <button type="button" class="btn" data-act="rel">相対調へ</button>
+          <button type="button" class="btn primary" data-act="scale">スケールを鳴らす</button>
+          <div class="seg" role="group" aria-label="音名の表記">
+            <button type="button" data-act="notation" data-v="abc" aria-pressed="true">C D E</button>
+            <button type="button" data-act="notation" data-v="doremi" aria-pressed="false">ド レ ミ</button>
+          </div>
+        </div>
+        <dl class="facts" id="facts"></dl>
+      </section>
+
+      <section class="sec" aria-labelledby="h-chord">
+        <h2 id="h-chord">2. コード（3音の三角）</h2>
+        <div class="degs" id="degs"></div>
+        <div class="chordname" id="chordname"></div>
+        <p class="explain" id="chordexp"></p>
+      </section>
+
+      <section class="sec" aria-labelledby="h-prog">
+        <h2 id="h-prog">3. コード進行をつくる</h2>
+        <div class="prog" id="prog" aria-live="polite"></div>
+        <div class="row">
+          <button type="button" class="btn" data-act="add">今のコードを追加</button>
+          <button type="button" class="btn primary" id="playBtn" data-act="play">再生</button>
+          <button type="button" class="btn" data-act="clear">クリア</button>
+          <label class="bpm" for="bpm">テンポ <input type="range" id="bpm" min="60" max="160" value="96"><span id="bpmv">96</span></label>
+        </div>
+        <div class="presets" id="presets"></div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    元になった動画は Yoshiò さんの「視覚的に解る#音楽理論 まとめを一分で」です。<a href="https://youtube.com/shorts/NngpnuJ5Ls0" target="_blank" rel="noopener">動画を見る</a>　動画の説明欄には、早見盤式は自由に使ってよいと書かれています。音が出ないときは、端末のマナーモードと音量を確認してください。
+  </footer>
+</main>
+
+<script>
+(function(){
+  var SHARP=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+  var DO=['ド','ド♯','レ','レ♯','ミ','ファ','ファ♯','ソ','ソ♯','ラ','ラ♯','シ'];
+  var MODES={major:{name:'メジャー',iv:[0,2,4,5,7,9,11]},minor:{name:'マイナー',iv:[0,2,3,5,7,8,10]}};
+  var PRESETS={
+    major:[['王道進行 IV–V–iii–vi',[3,4,2,5]],['ポップス I–V–vi–IV',[0,4,5,3]],['カノン進行',[0,4,5,2,3,0,3,4]],['小室進行 vi–IV–V–I',[5,3,4,0]],['ii–V–I',[1,4,0]]],
+    minor:[['i–VI–III–VII',[0,5,2,6]],['i–iv–v–i',[0,3,4,0]],['i–VII–VI–VII',[0,6,5,6]],['VI–VII–i',[5,6,0]]]
+  };
+  var ROMAN=['I','II','III','IV','V','VI','VII'];
+  var state={key:0,mode:'major',deg:0,notation:'abc',prog:[0,4,5,3],bpm:96,playing:false,cur:-1,rot:0};
+
+  var C=200,R=140;
+  function $(s){return document.querySelector(s)}
+  function mod(n,m){return ((n%m)+m)%m}
+  function f(n){return n.toFixed(1)}
+  function pos(p,r){r=r||R;var t=p*Math.PI/6;return [C+r*Math.cos(t),C+r*Math.sin(t)]}
+  function noteName(p){return state.notation==='abc'?SHARP[p]:DO[p]}
+  function scaleNotes(){return MODES[state.mode].iv.map(function(i){return mod(state.key+i,12)})}
+
+  function chordOf(d){
+    var sc=scaleNotes();
+    var pcs=[sc[d],sc[(d+2)%7],sc[(d+4)%7]];
+    var third=mod(pcs[1]-pcs[0],12),fifth=mod(pcs[2]-pcs[0],12);
+    var q='aug';
+    if(third===4&&fifth===7)q='maj';else if(third===3&&fifth===7)q='min';else if(third===3&&fifth===6)q='dim';
+    var suffix={maj:'',min:'m',dim:'dim',aug:'aug'}[q];
+    var rn=ROMAN[d];
+    if(q!=='maj'&&q!=='aug')rn=rn.toLowerCase();
+    if(q==='dim')rn+='°';
+    return {pcs:pcs,third:third,fifth:fifth,q:q,name:noteName(pcs[0])+suffix,roman:rn};
+  }
+
+  /* ---------- sound ---------- */
+  var ac=null;
+  function ctx(){
+    if(!ac){var A=window.AudioContext||window.webkitAudioContext;ac=new A();}
+    if(ac.state==='suspended')ac.resume();
+    return ac;
+  }
+  function tone(midi,t0,dur,vol){
+    var a=ctx();
+    var fr=440*Math.pow(2,(midi-69)/12);
+    var g=a.createGain(),lp=a.createBiquadFilter();
+    lp.type='lowpass';lp.frequency.value=2400;
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.linearRampToValueAtTime(vol,t0+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    [['triangle',1,1],['sine',2,0.25]].forEach(function(w){
+      var o=a.createOscillator();o.type=w[0];o.frequency.value=fr*w[1];
+      var gg=a.createGain();gg.gain.value=w[2];
+      o.connect(gg);gg.connect(g);o.start(t0);o.stop(t0+dur+0.05);
+    });
+    g.connect(lp);lp.connect(a.destination);
+  }
+  function playChord(d,dur){
+    var ch=chordOf(d),a=ctx(),t=a.currentTime+0.02,m0=60+ch.pcs[0];
+    dur=dur||1.4;
+    tone(m0-12,t,dur,0.12);
+    tone(m0,t,dur,0.14);tone(m0+ch.third,t,dur,0.13);tone(m0+ch.fifth,t,dur,0.13);
+  }
+  function playScale(){
+    var a=ctx(),t=a.currentTime+0.02,iv=MODES[state.mode].iv.concat([12]);
+    iv.forEach(function(i,n){tone(60+state.key+i,t+n*0.3,0.5,0.17)});
+  }
+
+  /* ---------- dial ---------- */
+  function hoursSvg(){
+    var s='';
+    for(var p=0;p<12;p++){var h=mod(p+2,12)+1,xy=pos(p,177);s+='<text class="hour" x="'+f(xy[0])+'" y="'+f(xy[1])+'">'+h+'</text>';}
+    $('#hours').innerHTML=s;
+  }
+  function wheelSvg(){
+    var iv=MODES[state.mode].iv,pts=iv.map(function(i){return pos(i)});
+    var outline=pts.map(function(p){return f(p[0])+','+f(p[1])}).join(' ');
+    var order=[0,2,4,6,1,3,5],d='';
+    order.forEach(function(i,n){d+=(n?'L':'M')+f(pts[i][0])+' '+f(pts[i][1])});
+    d+='Z';
+    var t=pos(0);
+    $('#wheel').innerHTML='<polygon class="outline" points="'+outline+'"/><path class="star" d="'+d+'"/><circle class="tonic" cx="'+f(t[0])+'" cy="'+f(t[1])+'" r="28"/>';
+  }
+  function applyRot(anim){
+    var w=$('#wheel');
+    w.classList.toggle('drag',!anim);
+    w.style.transform='rotate('+state.rot+'deg)';
+  }
+  function slotsSvg(){
+    var sc=scaleNotes(),ch=chordOf(state.deg),s='';
+    for(var p=0;p<12;p++){
+      var xy=pos(p),idx=sc.indexOf(p),inCh=ch.pcs.indexOf(p)>=0;
+      var cls='slot'+(idx>=0?' in':'')+(inCh?' chord':'');
+      var nm=noteName(p),fs=nm.length>2?11:(nm.length>1?14:16);
+      var attrs=idx>=0?' tabindex="0" role="button" aria-label="'+nm+'のコードを鳴らす"':'';
+      s+='<g class="'+cls+'" data-p="'+p+'"'+attrs+'><circle class="slot-c" cx="'+f(xy[0])+'" cy="'+f(xy[1])+'" r="21"/><text x="'+f(xy[0])+'" y="'+f(xy[1])+'" style="font-size:'+fs+'px">'+nm+'</text></g>';
+    }
+    $('#slots').innerHTML=s;
+  }
+  function chordSvg(){
+    var ch=chordOf(state.deg),pts=ch.pcs.map(function(p){return pos(p)});
+    var s='<polygon class="tri" points="'+pts.map(function(p){return f(p[0])+','+f(p[1])}).join(' ')+'"/>';
+    ['R','3rd','5th'].forEach(function(l,i){var xy=pos(ch.pcs[i],104);s+='<text class="tag" x="'+f(xy[0])+'" y="'+f(xy[1])+'">'+l+'</text>'});
+    $('#chordLayer').innerHTML=s;
+  }
+
+  /* ---------- panels ---------- */
+  function buildKeys(){
+    var s='';
+    for(var p=0;p<12;p++)s+='<button type="button" data-act="key" data-v="'+p+'" aria-pressed="false"></button>';
+    $('#keys').innerHTML=s;
+  }
+  function updateKeys(){
+    var bs=$('#keys').children;
+    for(var p=0;p<12;p++){bs[p].textContent=noteName(p);bs[p].setAttribute('aria-pressed',String(p===state.key));}
+  }
+  function updateModes(){
+    document.querySelectorAll('[data-act="mode"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.v===state.mode))});
+    document.querySelectorAll('[data-act="notation"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.v===state.notation))});
+  }
+  function factsHtml(){
+    var sc=scaleNotes(),iv=MODES[state.mode].iv,steps=[];
+    for(var i=0;i<7;i++){var g=(i<6?iv[i+1]:12)-iv[i];steps.push(g===2?'全':'半');}
+    var relKey=state.mode==='major'?mod(state.key+9,12):mod(state.key+3,12);
+    var relMode=state.mode==='major'?'マイナー':'メジャー';
+    $('#facts').innerHTML=
+      '<dt>キー</dt><dd>'+noteName(state.key)+' '+MODES[state.mode].name+'</dd>'+
+      '<dt>7つの音</dt><dd>'+sc.map(noteName).join(' ')+'</dd>'+
+      '<dt>音の間隔</dt><dd>'+steps.join(' ')+'（全=2目盛り、半=1目盛り）</dd>'+
+      '<dt>同じ音の仲間</dt><dd>'+noteName(relKey)+' '+relMode+'（盤の青い星は同じ形）</dd>';
+  }
+  function buildDegs(){
+    var s='';
+    for(var d=0;d<7;d++)s+='<button type="button" data-act="deg" data-v="'+d+'" aria-pressed="false"><b></b><small></small></button>';
+    $('#degs').innerHTML=s;
+  }
+  function updateDegs(){
+    var bs=$('#degs').children;
+    for(var d=0;d<7;d++){
+      var ch=chordOf(d);
+      bs[d].querySelector('b').textContent=ch.name;
+      bs[d].querySelector('small').textContent=ch.roman;
+      bs[d].setAttribute('aria-pressed',String(d===state.deg));
+    }
+  }
+  function chordText(){
+    var ch=chordOf(state.deg);
+    var mood={maj:'明るい',min:'暗い',dim:'不安定',aug:'浮遊感'}[ch.q];
+    var tn=ch.third===4?'長3度':'短3度';
+    var fn=ch.fifth===7?'完全5度':(ch.fifth===6?'減5度':'増5度');
+    $('#chordname').innerHTML='<strong>'+ch.name+'</strong><span>'+ch.roman+'</span><span class="mood">'+mood+'</span><span>'+ch.pcs.map(noteName).join(' – ')+'</span>';
+    var near=ch.third<4?'ルート寄り':'フィフス寄り';
+    $('#chordexp').textContent='ルート（R）から時計で '+ch.third+'時間先がサード（'+tn+'）、'+ch.fifth+'時間先がフィフス（'+fn+'）です。サードが'+near+'なので「'+mood+'」響きになります。';
+  }
+  function progHtml(){
+    var el=$('#prog');
+    if(!state.prog.length){el.innerHTML='<span class="empty">コードを追加するか、下の例から選んでください。</span>';return}
+    el.innerHTML=state.prog.map(function(d,i){
+      var ch=chordOf(d);
+      return '<span class="chip'+(i===state.cur?' now':'')+'"><button type="button" class="pick" data-act="chip" data-v="'+i+'" aria-label="'+ch.name+'を鳴らす"><b>'+ch.name+'</b><small>'+ch.roman+'</small></button><button type="button" class="x" data-act="del" data-v="'+i+'" aria-label="'+ch.name+'を削除">×</button></span>';
+    }).join('');
+  }
+  function presetsHtml(){
+    $('#presets').innerHTML=PRESETS[state.mode].map(function(p,i){
+      return '<button type="button" data-act="preset" data-v="'+i+'">'+p[0]+'</button>';
+    }).join('');
+  }
+  function render(){
+    updateKeys();updateModes();factsHtml();updateDegs();chordText();progHtml();slotsSvg();chordSvg();
+    $('#playBtn').textContent=state.playing?'停止':'再生';
+    $('#playBtn').classList.toggle('primary',!state.playing);
+  }
+
+  /* ---------- state changes ---------- */
+  function setKey(k){
+    var d=mod(k-state.key,12);if(d>6)d-=12;
+    state.rot+=d*30;state.key=k;applyRot(true);render();
+  }
+  function setMode(m){
+    if(m===state.mode)return;
+    state.mode=m;wheelSvg();presetsHtml();render();
+  }
+  function keyFromRot(){return mod(Math.round(state.rot/30),12)}
+
+  var timers=[];
+  function stopProg(){
+    state.playing=false;state.cur=-1;
+    timers.forEach(clearTimeout);timers=[];
+    render();
+  }
+  function playProg(){
+    if(!state.prog.length)return;
+    state.playing=true;
+    var i=0,ms=120000/state.bpm;
+    (function step(){
+      if(!state.playing)return;
+      if(i>=state.prog.length)i=0;
+      state.cur=i;state.deg=state.prog[i];
+      render();playChord(state.deg,Math.min(2.4,ms/1000));
+      i++;
+      timers.push(setTimeout(step,ms));
+    })();
+  }
+
+  /* ---------- events ---------- */
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-act]');
+    if(!b)return;
+    var act=b.dataset.act,v=b.dataset.v;
+    if(act==='key'){setKey(+v);playChord(state.deg)}
+    else if(act==='mode'){setMode(v)}
+    else if(act==='rel'){
+      var nk=state.mode==='major'?mod(state.key+9,12):mod(state.key+3,12);
+      var nm=state.mode==='major'?'minor':'major';
+      state.mode=nm;wheelSvg();presetsHtml();setKey(nk);
+    }
+    else if(act==='notation'){state.notation=v;render()}
+    else if(act==='scale'){playScale()}
+    else if(act==='deg'){state.deg=+v;render();playChord(state.deg)}
+    else if(act==='add'){if(state.prog.length<12){state.prog.push(state.deg);progHtml()}}
+    else if(act==='del'){state.prog.splice(+v,1);if(state.playing&&!state.prog.length)stopProg();else progHtml()}
+    else if(act==='chip'){state.deg=state.prog[+v];render();playChord(state.deg)}
+    else if(act==='clear'){if(state.playing)stopProg();state.prog=[];progHtml()}
+    else if(act==='play'){state.playing?stopProg():playProg()}
+    else if(act==='preset'){if(state.playing)stopProg();state.prog=PRESETS[state.mode][+v][1].slice();progHtml()}
+  });
+  $('#bpm').addEventListener('input',function(e){state.bpm=+e.target.value;$('#bpmv').textContent=state.bpm});
+
+  var svg=$('#dial'),drag=null,justDragged=false;
+  function ang(e){
+    var r=svg.getBoundingClientRect();
+    return Math.atan2(e.clientY-(r.top+r.height/2),e.clientX-(r.left+r.width/2))*180/Math.PI;
+  }
+  function slotPick(el){
+    var p=+el.dataset.p,d=scaleNotes().indexOf(p);
+    if(d<0)return;
+    state.deg=d;render();playChord(d);
+  }
+  svg.addEventListener('pointerdown',function(e){drag={a:ang(e),moved:0}});
+  window.addEventListener('pointermove',function(e){
+    if(!drag)return;
+    var a=ang(e),d=a-drag.a;
+    if(d>180)d-=360;if(d<-180)d+=360;
+    drag.a=a;drag.moved+=Math.abs(d);
+    if(drag.moved<4)return;
+    state.rot+=d;
+    var k=keyFromRot();
+    applyRot(false);
+    if(k!==state.key){state.key=k;render()}
+  });
+  window.addEventListener('pointerup',function(){
+    if(!drag)return;
+    var moved=drag.moved;drag=null;
+    if(moved>=4){
+      justDragged=true;setTimeout(function(){justDragged=false},60);
+      state.rot=Math.round(state.rot/30)*30;state.key=keyFromRot();
+      applyRot(true);render();
+    }
+  });
+  svg.addEventListener('click',function(e){
+    if(justDragged)return;
+    var s=e.target.closest('.slot');
+    if(s)slotPick(s);
+  });
+  svg.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    var s=e.target.closest('.slot');
+    if(s){e.preventDefault();slotPick(s)}
+  });
+
+  /* ---------- init ---------- */
+  hoursSvg();wheelSvg();buildKeys();buildDegs();presetsHtml();
+  state.rot=0;applyRot(false);
+  render();
+})();
+</script>
+
+</body>
+</html>
